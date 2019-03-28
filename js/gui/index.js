@@ -41,7 +41,10 @@ function processFiles(fileNames) {
                 tbl.put(fileName, () => {
                     startDataWorker('js/data/processdataworker.js', "../../data/" + fileName, (result) => {
                         if (result.sequenceId) {
-                            currentSequences.push(result.sequenceId);
+                            currentSequences.push({
+                                sequenceId: result.sequenceId,
+                                sequenceLength: result.sequenceLength
+                            });
                             result = result.text;
                         }
 
@@ -116,7 +119,7 @@ function loadExistingSequences() {
         const tbl = new TblSequencesHandler(db);
         tbl.getSequenceCursor((cursor) => {
             if (cursor) {
-                currentSequences.push(cursor.value.sequenceId);
+                currentSequences.push({sequenceId: cursor.value.sequenceId, sequenceLength: cursor.value.sequence.split('\n')[1].length});
                 cm.draw(currentSequences);
                 cursor.continue();
             } else {
@@ -132,8 +135,9 @@ function loadExistingSequences() {
 function sortSequences(sequences) {
     const items = sequences.map(d => {
         return {
-            sequenceId: d,
-            processName: extractProcessId(d)
+            sequenceId: d.sequenceId,
+            sequenceLength: d.sequenceLength,
+            processName: extractProcessId(d.sequenceId)
         };
     });
     items.sort((a, b) => {
@@ -145,7 +149,9 @@ function sortSequences(sequences) {
             return b.processName.localeCompare(a.processName);
         }
     });
-    return items.map(d => d.sequenceId);
+    return items.map(d => {
+        return {sequenceId: d.sequenceId, sequenceLength: d.sequenceLength}
+    });
 }
 
 function loadExistingAlignments() {
@@ -242,7 +248,7 @@ function requestAlignments(batch, onSuccess) {
                         tblAlignments.updateAlignment(result, () => {
                             newAlignmentCounter++;
                             showMessage(`Fetching ${newAlignmentCounter}/${totalNewAlignments} alignments`);
-                            if(newAlignmentCounter === totalNewAlignments){
+                            if (newAlignmentCounter === totalNewAlignments) {
                                 hideMessage();
                             }
                         });

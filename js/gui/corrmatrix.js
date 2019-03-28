@@ -1,12 +1,16 @@
-const DEFAULT_CELL_WITH = 20;
-const DEFAULT_CELL_HEIGHT = 20;
-const DEFAULT_TRANSITION_DURATION = 1000;
+const DEFAULT_MIN_CELL_WITH = 15;
+const DEFAULT_MAX_CELL_WITH = 25;
+const DEFAULT_MIN_CELL_HEIGHT = 15;
+const DEFAULT_MAX_CELL_HEIGHT = 25;
+const DEFAULT_TRANSITION_DURATION = 500;
 const VS_STR = "*vs*";
 
 class CorrelationMatrix {
     constructor(svgGroup, options = {}) {
-        options.cellWidth = options.cellWidth ? options.cellWidth : DEFAULT_CELL_WITH;
-        options.cellHeight = options.cellHeight ? options.cellHeight : DEFAULT_CELL_HEIGHT;
+        options.minCellWidth = options.minCellWidth ? options.minCellWidth : DEFAULT_MIN_CELL_WITH;
+        options.maxCellWidth = options.maxCellWidth ? options.maxCellWidth : DEFAULT_MAX_CELL_WITH;
+        options.minCellHeight = options.minCellHeight ? options.minCellHeight : DEFAULT_MIN_CELL_HEIGHT;
+        options.maxCellHeight = options.maxCellHeight ? options.maxCellHeight : DEFAULT_MAX_CELL_HEIGHT;
         options.transitionDuration = options.transitionDuration ? options.transitionDuration : DEFAULT_TRANSITION_DURATION;
         this.options = options;
         this.svgGroup = svgGroup;
@@ -15,26 +19,42 @@ class CorrelationMatrix {
     draw(variables) {
         this.variables = variables;
         const self = this;
-        const options = self.options;
         const svgGroup = this.svgGroup;
-        let rows = svgGroup.selectAll(".row").data(this.variables, d => d);
+        //Calculate the scale.
+        const heightScale = d3.scaleLinear().domain(d3.extent(this.variables.map(d => d.sequenceLength))).range([this.options.minCellHeight, this.options.maxCellHeight]);
+        const widthScale = d3.scaleLinear().domain(d3.extent(this.variables.map(d => d.sequenceLength))).range([this.options.minCellWidth, this.options.maxCellWidth]);
+
+        let rows = svgGroup.selectAll(".row").data(this.variables, d => idSanitizer(d.sequenceId));
         const newRows = rows.enter().append("g").attr("class", "row").call(setRowAttributes);
         rows.exit().call(fadeOutThenRemove);
         rows = newRows.merge(rows);
         rows.transition().duration(self.options.transitionDuration).call(setRowAttributes);
 
 
-        let cells = rows.selectAll(".cell").data((d, i) => self.variables.slice(0, i), function (d) {
-            return idSanitizer(combinePair(this.__data__, d, VS_STR));
-        });
+        let cells = rows.selectAll(".cell").data((d, i) => self.variables.slice(0, i),
+            //TODO: Check again this section since we may see duplicated cellId
+            function (d) {
+                return idSanitizer(combinePair(this.__data__.sequenceId, d.sequenceId, VS_STR));
+            });
 
         const newCells = cells.enter().append("rect").attr("class", "cell").attr("id", function (d) {
-            return idSanitizer(combinePair(this.parentElement.__data__, d, VS_STR));
-        }).call(setCellAttributes);
+            //TODO: Check again this section since we may see duplicated cellId
+            return idSanitizer(combinePair(this.parentElement.__data__.sequenceId, d.sequenceId, VS_STR));
+        })
+            .attr("x", (d, i) => getPosition(i, widthScale)).attr("y", 0)
+            .attr("width", (d) => widthScale(d.sequenceLength))
+            .attr("height", function () {
+                return heightScale(this.parentElement.__data__.sequenceLength);
+            })
+            .attr("fill", "gray").attr("stroke-width", 0.5).attr("stroke", "black")
 
         cells.exit().call(fadeOutThenRemove);
+
         cells = newCells.merge(cells);
-        cells.transition().duration(self.options.transitionDuration).call(setCellAttributes);
+        //Update only positions of the cells
+        cells.transition().duration(self.options.transitionDuration)
+            .attr("x", (d, i) => getPosition(i, widthScale)).attr("y", 0);
+
         cells.on("mouseover", function (d) {
             let thePair = self.getRowCellDataPair(this.id);
             self.highlightLabels(thePair.map(lb => idSanitizer(lb)));
@@ -45,11 +65,11 @@ class CorrelationMatrix {
             self.highlightCellsOfPair([])
         });
         let labels = rows.selectAll(".label").data((d, i) => [{
-            text: d,
-            x: (i) * self.options.cellWidth,
-            y: this.options.cellHeight
-        }], d => d);
-        const newLabels = labels.enter().append("text").attr("class", "label").attr("id", d => idSanitizer(d.text));
+            text: d.sequenceId,
+            x: getPosition(i, widthScale),
+            y: heightScale(d.sequenceLength)/2
+        }], d => idSanitizer(d.text));
+        const newLabels = labels.enter().append("text").attr("class", "label").attr("id", d => idSanitizer(d.text)).attr('alignment-baseline', 'middle');
         labels.exit().call(fadeOutThenRemove);
         labels = newLabels.merge(labels);
         labels.call(setLabelAttributes);
@@ -71,14 +91,20 @@ class CorrelationMatrix {
         }
 
         function setRowAttributes(theRow) {
-            theRow.attr("transform", (d, i) => `translate(0, ${i * options.cellHeight})`);
+            theRow.attr("transform", (d, i) => {
+                return `translate(0, ${getPosition(i, heightScale)})`;
+            });
         }
 
-        function setCellAttributes(theCell) {
-            if (!theCell.empty()) {
-                theCell.attr("x", (d, i) => i * options.cellWidth).attr("y", 0).attr("width", options.cellWidth).attr("height", options.cellHeight)
-                    .attr("fill", "gray").attr("stroke-width", 0.5).attr("stroke", "black")
+
+        function getPosition(theIndex, sizeScale) {
+            let position = 0;
+            let curr = null;
+            for (let i = 0; i < theIndex; i++) {
+                curr = sizeScale(self.variables[i].sequenceLength);
+                position += curr;
             }
+            return position;
         }
     }
 
@@ -95,7 +121,7 @@ class CorrelationMatrix {
         thePair.forEach(p => {
             this.variables.forEach(v => {
                 //The id might be either way
-                cellIds.push(idSanitizer(combinePair(v, p, VS_STR)));
+                cellIds.push(idSanitizer(combinePair(v.sequenceId, p, VS_STR)));
             });
         });
         this.highlightCells(cellIds);
@@ -114,7 +140,7 @@ class CorrelationMatrix {
         if (!theLabel) {
             this.highlightCells([]);
         } else {
-            const cellIds = this.variables.map(v => idSanitizer(combinePair(v, theLabel, VS_STR)));
+            const cellIds = this.variables.map(v => idSanitizer(combinePair(v.sequenceId, theLabel, VS_STR)));
             this.highlightCells(cellIds);
         }
     }
@@ -138,7 +164,7 @@ class CorrelationMatrix {
             openFloatingBox('controlPanelContainer', x, y, () => {
                 if (theAlignment.length > 0) {
                     document.getElementById('alignment').innerHTML = theAlignment[0].alignment;
-                }else{
+                } else {
                     document.getElementById('alignment').innerHTML = '';
                 }
             });
@@ -149,7 +175,7 @@ class CorrelationMatrix {
         const theCell = this.svgGroup.select("#" + cellId);
         const rowData = theCell.node().parentElement.__data__;
         const cellData = theCell.node().__data__;
-        return [rowData, cellData];
+        return [rowData.sequenceId, cellData.sequenceId];
     }
 
 }
