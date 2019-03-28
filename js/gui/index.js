@@ -154,8 +154,8 @@ function loadExistingAlignments() {
         tbl.getAlignmentCursor((cursor) => {
             if (cursor) {
                 const alm = cursor.value;
+                currentAlignments.push(alm);
                 setAlignmentColor(alm);
-
                 //continue next step
                 cursor.continue();
             }
@@ -164,7 +164,6 @@ function loadExistingAlignments() {
 }
 
 function setAlignmentColor(alm) {
-    currentAlignments.push(alm);
     //Get the identity value
     const identity = extractIdentity(alm.alignment);
     let color = 'blue';
@@ -238,6 +237,7 @@ function requestAlignments(batch, onSuccess) {
                     startWSWorker('js/ws/alignwebworker.js', data, (result) => {
                         //TODO: May need to check if this place to update the GUI is reasonable.
                         setAlignmentColor(result);
+                        currentAlignments.push(result);
 
                         tblAlignments.updateAlignment(result, () => {
                             newAlignmentCounter++;

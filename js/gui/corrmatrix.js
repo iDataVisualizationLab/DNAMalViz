@@ -44,21 +44,6 @@ class CorrelationMatrix {
             self.highlightLabels([]);
             self.highlightCellsOfPair([])
         });
-        //TODO: This section for on click should be refactored to decouple the related info in this
-        cells.on("click", function (d) {
-            let thePair = self.getRowCellDataPair(this.id);
-            //Either way
-            let theAlignment = currentAlignments.filter(alm => ((alm.asequenceId === thePair[0] && alm.bsequenceId === thePair[1]) || (alm.asequenceId === thePair[1] && alm.bsequenceId === thePair[0])));
-            let x = d3.event.pageX;
-            let y = d3.event.pageY;
-            openFloatingBox('controlPanelContainer', x, y, () => {
-                if (theAlignment.length > 0) {
-                    document.getElementById('alignment').innerHTML = theAlignment[0].alignment;
-                }else{
-                    document.getElementById('alignment').innerHTML = '';
-                }
-            });
-        });
         let labels = rows.selectAll(".label").data((d, i) => [{
             text: d,
             x: (i) * self.options.cellWidth,
@@ -140,7 +125,24 @@ class CorrelationMatrix {
 
 
     updateColor(cellId, color) {
-        this.svgGroup.select(`#${cellId}`).transition().duration(this.options.transitionDuration).attr("fill", color);
+        let self = this;
+        const cell = this.svgGroup.select(`#${cellId}`);
+        cell.transition().duration(this.options.transitionDuration).attr("fill", color);
+        //Update the on click (since changing color means changing alignment too).
+        cell.on("click", function (d) {
+            let thePair = self.getRowCellDataPair(this.id);
+            //Either way
+            let theAlignment = currentAlignments.filter(alm => ((alm.asequenceId === thePair[0] && alm.bsequenceId === thePair[1]) || (alm.asequenceId === thePair[1] && alm.bsequenceId === thePair[0])));
+            let x = d3.event.pageX;
+            let y = d3.event.pageY;
+            openFloatingBox('controlPanelContainer', x, y, () => {
+                if (theAlignment.length > 0) {
+                    document.getElementById('alignment').innerHTML = theAlignment[0].alignment;
+                }else{
+                    document.getElementById('alignment').innerHTML = '';
+                }
+            });
+        });
     }
 
     getRowCellDataPair(cellId) {
