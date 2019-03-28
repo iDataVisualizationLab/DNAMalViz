@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        @import "lib/toast/toast.css";
+    </style>
+    <script src="lib/toast/toast.js"></script>
+    <script src="lib/underscore-min.js"></script>
+    <script src="lib/d3.v5.min.js"></script>
+
+    <script src="js/db/databasehandler.js"></script>
+    <script src="js/db/tblprocessedfileshandler.js"></script>
+    <script src="js/db/tblsequenceshandler.js"></script>
+    <script src="js/db/tblalignmentshandler.js"></script>
+
+    <script src="js/data/datawebworker.js"></script>
+    <script src="js/ws/wswebworker.js"></script>
+    <script src="js/datafiles.js"></script>
+    <script src="js/gui/utils.js"></script>
+    <script src="js/gui/corrmatrix.js"></script>
+</head>
+<body>
+<div>
+    <button onclick="loadData(dataFiles)">Load file</button>
+    <button onclick="loadExistingSequences()">Load sequences</button>
+    <button onclick="loadExistingAlignments()">Load alignments</button>
+</div>
+
+<div>
+    <svg height="1200" width="1200">
+        <g id="cmGroup" transform="translate(0, 150)"></g>
+    </svg>
+</div>
+<!--<editor-fold desc="Section for the floating box">-->
+<style>
+    @import "js/floatingBox/floatingBox.css";
+</style>
+<script src="js/floatingBox/jquery.js"></script>
+<script src="js/floatingBox/floatingBox.js"></script>
+<div class="floatingBox" id="controlPanelContainer" style="visibility: hidden">
+    <div class="floatingBoxHeader" id="controlPanelHeader">
+        <span class="floatingBoxButton" onclick="closeFloatingBox('controlPanelContainer')">[x]</span>
+        Alignment details
+    </div>
+    <div class="floatingBoxContent" id="controlPanel">
+        <div>
+            <textarea id="alignment" cols="80" rows="50" ondragstart="return false;" style="font-family: Menlo;"></textarea>
+        </div>
+    </div>
+</div>
+<!--</editor-fold>-->
+<script src="js/gui/index.js"></script>
+<div id="snackbar"></div>
+</body>
+</html>
