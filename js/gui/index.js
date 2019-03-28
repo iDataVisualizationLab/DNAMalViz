@@ -236,8 +236,8 @@ function requestAlignments(batch, onSuccess) {
 
                     startWSWorker('js/ws/alignwebworker.js', data, (result) => {
                         //TODO: May need to check if this place to update the GUI is reasonable.
-                        setAlignmentColor(result);
                         currentAlignments.push(result);
+                        setAlignmentColor(result);
 
                         tblAlignments.updateAlignment(result, () => {
                             newAlignmentCounter++;
