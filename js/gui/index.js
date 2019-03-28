@@ -5,16 +5,22 @@ const ebiBatchSize = 30;
 let totalNewAlignments = 0;
 //TODO: Should avoid this global value.
 let newAlignmentCounter = 0;
+// function processAlignment() {
+//     const data = {
+//         'email': 'vung.pham@ttu.edu',
+//         'asequence': encodeURIComponent(">../../data/Bladabindi.CSV*System\nLCATATATATATATATANEDNEDNEDANEDNEDNEDNEDNEDNEDATATATANEDNEDANEDANEDATANEDNEDANEDNEDNEDNEDATATATGNEDNEDATATNEDNEDNEDNEDATNEDNEDNEDNEDNEDNEDATATNEDNEDNEDNEDNEDNEDNEDNEDNEDNEDGNEDNEDAGATATAGATATNEDNEDANEDNEDNEDNEDATAGATATATATAGAGAGAT"),
+//         'bsequence': encodeURIComponent(">../../data/Bladabindi.CSV*csrss.exe\nCSCSCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCGCGCGCGCGCGSCSRCSCTRCTVCSCSCGCGCGCGCGCGCGCGCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCSCSCSCGCGCGCGCSCSCGCGCGCGC")
+//     };
+//     startWSWorker('js/ws/alignwebworker.js', data, (result) => {
+//         console.log(result);
+//     }, 0);
+// }
+//Execute these automatically.
 
-function processAlignment() {
-    const data = {
-        'email': 'vung.pham@ttu.edu',
-        'asequence': encodeURIComponent(">../../data/Bladabindi.CSV*System\nLCATATATATATATATANEDNEDNEDANEDNEDNEDNEDNEDNEDATATATANEDNEDANEDANEDATANEDNEDANEDNEDNEDNEDATATATGNEDNEDATATNEDNEDNEDNEDATNEDNEDNEDNEDNEDNEDATATNEDNEDNEDNEDNEDNEDNEDNEDNEDNEDGNEDNEDAGATATAGATATNEDNEDANEDNEDNEDNEDATAGATATATATAGAGAGAT"),
-        'bsequence': encodeURIComponent(">../../data/Bladabindi.CSV*csrss.exe\nCSCSCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCGCGCGCGCGCGSCSRCSCTRCTVCSCSCGCGCGCGCGCGCGCGCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCSCSCSCGCGCGCGCSCSCGCGCGCGC")
-    };
-    startWSWorker('js/ws/alignwebworker.js', data, (result) => {
-        console.log(result);
-    }, 0);
+function start(){
+    loadExistingSequences();
+    loadExistingAlignments();
+    loadData(dataFiles);
 }
 
 function loadData(dataFiles) {

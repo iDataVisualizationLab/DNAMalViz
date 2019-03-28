@@ -36,7 +36,7 @@ const charsToRemove = ['.', '*'];
 function loadData(filename) {
     return new Promise(resolve => {
         d3.csv(filename).then(data => {
-            const nucleotide = processProcMonData(data, opList);
+            const nucleotide = processProcMonData(data);
             const name = extractFileName(filename);
             const fastaRecords = obj2FastaRecords(nucleotide, name);
             return resolve(fastaRecords);
@@ -44,7 +44,7 @@ function loadData(filename) {
     });
 }
 
-function processProcMonData(procMonData, opList) {
+function processProcMonData(procMonData) {
     const nestedByProcess = d3.nest().key(d => d.Process_Name).entries(procMonData);
     const results = {};
     nestedByProcess.forEach(d => {

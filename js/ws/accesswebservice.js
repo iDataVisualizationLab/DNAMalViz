@@ -1,4 +1,4 @@
-const baseURL = 'https://www.ebi.ac.uk/Tools/services/rest/emboss_water/';
+const baseURL = 'http://www.ebi.ac.uk/Tools/services/rest/emboss_needle/';
 const runCommand = 'run';
 const statusCommand = 'status';
 const resultCommand = 'result';

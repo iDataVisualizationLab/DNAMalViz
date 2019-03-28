@@ -10,6 +10,9 @@ function openFloatingBox(theBox, x, y, onSuccess) {
     $("#"+theBox).css("left", x + "px");
     $("#"+theBox).css("top", y + "px");
     $("#"+theBox).css('visibility', 'visible');
+    //Enable drag
+    d3.selectAll("#"+theBox).call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
+
     if (onSuccess) {
         onSuccess(theBox);//Can do something like: $("#" + theButton).fadeTo(1000, 1.0);
     }
@@ -51,11 +54,11 @@ function boxDragEnded() {
     d3.event.sourceEvent.stopPropagation();
 }
 
-$(document).ready(() => {
-    d3.selectAll(".floatingBox").call(d3.drag().on("start", boxDragStarted).on("drag", boxDragged).on("end", boxDragEnded));
-    $(document).keyup(function (e) {
-        if (e.keyCode == 27) {
-
-        }
-    });
-});
+// $(document).ready(() => {
+//
+//     $(document).keyup(function (e) {
+//         if (e.keyCode == 27) {
+//             closeFloatingBox('')
+//         }
+//     });
+// });
