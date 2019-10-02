@@ -9,7 +9,6 @@
     <script src="lib/toast/toast.js"></script>
     <script src="lib/underscore-min.js"></script>
     <script src="lib/d3.v5.min.js"></script>
-    <script src="js/floatingBox/jquery.js"></script>
 
     <script src="js/db/databasehandler.js"></script>
     <script src="js/db/tblprocessedfileshandler.js"></script>
@@ -24,7 +23,9 @@
 </head>
 <body>
 <div>
-    <button onclick="loadData(dataFiles)">Start</button>
+    <button onclick="loadData(dataFiles)">Load file</button>
+    <button onclick="loadExistingSequences()">Load sequences</button>
+    <button onclick="loadExistingAlignments()">Load alignments</button>
 </div>
 
 <div>
@@ -36,6 +37,7 @@
 <style>
     @import "js/floatingBox/floatingBox.css";
 </style>
+<script src="js/floatingBox/jquery.js"></script>
 <script src="js/floatingBox/floatingBox.js"></script>
 <div class="floatingBox" id="controlPanelContainer" style="visibility: hidden">
     <div class="floatingBoxHeader" id="controlPanelHeader">

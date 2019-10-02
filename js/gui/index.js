@@ -1,26 +1,18 @@
 let currentSequences = [];
 let currentAlignments = [];
 const cm = new CorrelationMatrix(d3.select("#cmGroup"));
-const ebiBatchSize = 30;
-let totalNewAlignments = 0;
 //TODO: Should avoid this global value.
 let newAlignmentCounter = 0;
-// function processAlignment() {
-//     const data = {
-//         'email': 'vung.pham@ttu.edu',
-//         'asequence': encodeURIComponent(">../../data/Bladabindi.CSV*System\nLCATATATATATATATANEDNEDNEDANEDNEDNEDNEDNEDNEDATATATANEDNEDANEDANEDATANEDNEDANEDNEDNEDNEDATATATGNEDNEDATATNEDNEDNEDNEDATNEDNEDNEDNEDNEDNEDATATNEDNEDNEDNEDNEDNEDNEDNEDNEDNEDGNEDNEDAGATATAGATATNEDNEDANEDNEDNEDNEDATAGATATATATAGAGAGAT"),
-//         'bsequence': encodeURIComponent(">../../data/Bladabindi.CSV*csrss.exe\nCSCSCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCGCGCGCGCGCGSCSRCSCTRCTVCSCSCGCGCGCGCGCGCGCGCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCSCSCSCGCGCGCGCSCSCGCGCGCGC")
-//     };
-//     startWSWorker('js/ws/alignwebworker.js', data, (result) => {
-//         console.log(result);
-//     }, 0);
-// }
-//Execute these automatically.
 
-function start(){
-    loadExistingSequences();
-    loadExistingAlignments();
-    loadData(dataFiles);
+function processAlignment() {
+    const data = {
+        'email': 'vung.pham@ttu.edu',
+        'asequence': encodeURIComponent(">../../data/Bladabindi.CSV*System\nLCATATATATATATATANEDNEDNEDANEDNEDNEDNEDNEDNEDATATATANEDNEDANEDANEDATANEDNEDANEDNEDNEDNEDATATATGNEDNEDATATNEDNEDNEDNEDATNEDNEDNEDNEDNEDNEDATATNEDNEDNEDNEDNEDNEDNEDNEDNEDNEDGNEDNEDAGATATAGATATNEDNEDANEDNEDNEDNEDATAGATATATATAGAGAGAT"),
+        'bsequence': encodeURIComponent(">../../data/Bladabindi.CSV*csrss.exe\nCSCSCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCGCGCGCGCGCGSCSRCSCTRCTVCSCSCGCGCGCGCGCGCGCGCGCGCGCGCSCSCGCGCGCGCSCSCGCGCGCGSCSCSCSCSCGCGCGCGCSCSCGCGCGCGC")
+    };
+    startWSWorker('js/ws/alignwebworker.js', data, (result) => {
+        console.log(result);
+    }, 0);
 }
 
 function loadData(dataFiles) {
@@ -36,6 +28,7 @@ function loadData(dataFiles) {
 
 function processFiles(fileNames) {
     if (fileNames && fileNames.length > 0) {
+        let almCounter = 0;
         let i = 0;
         processFile(i);
 
@@ -46,22 +39,17 @@ function processFiles(fileNames) {
                 const tbl = new TblProcessedFilesHandler(db);
                 tbl.put(fileName, () => {
                     startDataWorker('js/data/processdataworker.js', "../../data/" + fileName, (result) => {
+                        //TODO: May need to check if this place to update the GUI is reasonable.
+                        //This section update the visualization on adding a sequence
                         if (result.sequenceId) {
-                            currentSequences.push({
-                                sequenceId: result.sequenceId,
-                                sequenceLength: result.sequenceLength
-                            });
+                            currentSequences.push(result.sequenceId);
+                            cm.draw(currentSequences);
                             result = result.text;
                         }
 
                         showMessage(result);
 
                         if (result === "Done") {
-                            //TODO: May need to check if this place to update the GUI is reasonable.
-                            //Redraw the whole sequence with order
-                            currentSequences = sortSequences(currentSequences);
-                            cm.draw(currentSequences);
-
                             i++;
                             if (i < fileNames.length) {
                                 //Continue to process next file
@@ -93,9 +81,8 @@ function processFiles(fileNames) {
                                                 //TODO: May need to check if this place to update the GUI is reasonable.
                                                 //Update the alignment on cells.
                                                 setAlignmentColor(alm);
-                                                showMessage("Added " + (++totalNewAlignments) + " alignments.");
-                                                if (totalNewAlignments == ((m * n) + ((m - 1) * m) / 2)) {//Done adding alignment
-
+                                                showMessage("Added " + (++almCounter) + " alignments.");
+                                                if (almCounter == ((m * n) + ((m - 1) * m) / 2)) {//Done adding alignment
                                                     showMessage("Done");
                                                     hideMessage();
                                                     //Start processing alignments.
@@ -125,7 +112,7 @@ function loadExistingSequences() {
         const tbl = new TblSequencesHandler(db);
         tbl.getSequenceCursor((cursor) => {
             if (cursor) {
-                currentSequences.push({sequenceId: cursor.value.sequenceId, sequenceLength: cursor.value.sequence.split('\n')[1].length});
+                currentSequences.push(cursor.value.sequenceId);
                 cm.draw(currentSequences);
                 cursor.continue();
             } else {
@@ -141,9 +128,8 @@ function loadExistingSequences() {
 function sortSequences(sequences) {
     const items = sequences.map(d => {
         return {
-            sequenceId: d.sequenceId,
-            sequenceLength: d.sequenceLength,
-            processName: extractProcessId(d.sequenceId)
+            sequenceId: d,
+            processName: extractProcessId(d)
         };
     });
     items.sort((a, b) => {
@@ -155,9 +141,7 @@ function sortSequences(sequences) {
             return b.processName.localeCompare(a.processName);
         }
     });
-    return items.map(d => {
-        return {sequenceId: d.sequenceId, sequenceLength: d.sequenceLength}
-    });
+    return items.map(d => d.sequenceId);
 }
 
 function loadExistingAlignments() {
@@ -166,8 +150,8 @@ function loadExistingAlignments() {
         tbl.getAlignmentCursor((cursor) => {
             if (cursor) {
                 const alm = cursor.value;
-                currentAlignments.push(alm);
                 setAlignmentColor(alm);
+
                 //continue next step
                 cursor.continue();
             }
@@ -176,12 +160,13 @@ function loadExistingAlignments() {
 }
 
 function setAlignmentColor(alm) {
+    currentAlignments.push(alm);
     //Get the identity value
     const identity = extractIdentity(alm.alignment);
     let color = 'blue';
     if (identity === 'FAILURE') {
         //TODO: color for failure case
-        color = 'white';
+        color = 'black';
     } else if (identity === 'UNDEFINED') {
         //TODO: color for undefined case
         color = 'gray';
@@ -204,7 +189,7 @@ function processAlignments(onSuccess) {
         tblAlignments.getNotAlignedCursor(cursor => {
             if (cursor) {
                 wsBatch.push(cursor.value);
-                if (wsBatch.length < ebiBatchSize) {
+                if (wsBatch.length < 10) {
                     cursor.continue();
                 } else {
                     requestAlignments(wsBatch, () => {
@@ -248,15 +233,11 @@ function requestAlignments(batch, onSuccess) {
 
                     startWSWorker('js/ws/alignwebworker.js', data, (result) => {
                         //TODO: May need to check if this place to update the GUI is reasonable.
-                        currentAlignments.push(result);
                         setAlignmentColor(result);
 
                         tblAlignments.updateAlignment(result, () => {
                             newAlignmentCounter++;
-                            showMessage(`Fetching ${newAlignmentCounter}/${totalNewAlignments} alignments`);
-                            if (newAlignmentCounter === totalNewAlignments) {
-                                hideMessage();
-                            }
+                            showMessage(`Fecthed ${newAlignmentCounter} alignments`);
                         });
                         counter++;
                         let batchCounter = counter % batch.length;

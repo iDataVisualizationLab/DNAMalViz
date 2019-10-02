@@ -11,7 +11,7 @@ onmessage = function (e) {
             data.forEach((sequence, i) => {
                 sequence.status = 0;//It is not aligned yet
                 tblSequence.put(sequence, () => {
-                    postMessage({text: `${msg}, added ${i + 1}/${n} sequences`, sequenceId: sequence.sequenceId, sequenceLength: sequence.sequence.split('\n')[1].length});
+                    postMessage({text: `${msg}, added ${i + 1}/${n} sequences`, sequenceId: sequence.sequenceId});
                     //Post 'Done'
                     if(i==n-1){
                         postMessage("Done");

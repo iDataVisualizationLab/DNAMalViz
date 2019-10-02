@@ -44,11 +44,6 @@ class TblAlignmentsHandler {
             onSuccess(cursor);
         }
     }
-    getNotAlignedCount(onSuccess){
-        this.loadAll(rows=>{
-            onSuccess(rows.filter(r=>r.alignment === "UNDEFINED").length);
-        });
-    }
     getAlignmentCursor(onSuccess){
         const tx = this.theDb.transaction('tblAlignments', 'readonly');
         const tbl = tx.objectStore("tblAlignments");
