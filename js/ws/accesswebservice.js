@@ -3,6 +3,7 @@ const runCommand = 'run';
 const statusCommand = 'status';
 const resultCommand = 'result';
 const rendererType = 'out';
+//TODO: set up protocol so it checks out with the web service
 
 function send(data, processAlignmentResult) {
     const url = baseURL + runCommand;

@@ -1,27 +1,27 @@
 const opToProtein = {
     "CreateFile": "C",
-    "ReadFile": "G",
-    "WriteFile": "A",
-    "CreateFileMapping": "T",
-    "QueryBasicInformationFile": "S",
+    "ReadFile": "C",
+    "WriteFile": "C",
+    "CreateFileMapping": "C",
+    "QueryBasicInformationFile": "C",
 
-    "RegCreateKey": "N",
-    "RegSetValue": "D",
-    "RegSetKeySecurity": "E",
-    "RegDeleteValue": "Q",
-    "RegFlushKey": "K",
+    "RegCreateKey": "G",
+    "RegSetValue": "G",
+    "RegSetKeySecurity": "G",
+    "RegDeleteValue": "G",
+    "RegFlushKey": "G",
 
-    "Load Image": "R",
-    "Process Create": "V",
-    "Process Start": "I",
-    "Thread Create": "L",
-    "Process Exit": "M",
+    "Load Image": "A",
+    "Process Create": "A",
+    "Process Start": "A",
+    "Thread Create": "A",
+    "Process Exit": "A",
 
-    "TCP Connect": "W",
-    "TCP Receive": "F",
-    "TCP Send": "Y",
-    "UDP Receive": "H",
-    "UDP Send": "P"
+    "TCP Connect": "T",
+    "TCP Receive": "T",
+    "TCP Send": "T",
+    "UDP Receive": "T",
+    "UDP Send": "T"
 };
 const charsToRemove = ['.', '*'];
 // loadAllData((f1, f2, opList) => {
